@@ -21,6 +21,9 @@ from vptq.utils.layer_utils import find_layers, replace_layer
 # get llama model
 def get_llama(model_name, seqlen=None):
 
+    # Disable HF Hub progress bars
+    os.environ["HF_HUB_DISABLE_PROGRESS_BARS"] = "1"
+    
     def skip(*args, **kwargs):
         pass
 
