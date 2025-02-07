@@ -41,24 +41,40 @@ def layer_quantizer(args, quant_args, layer, layer_idx, logger, dev, dtype, name
                 }
 
             layer_name = f'{layer_idx}_{name2hessian[name]}.pt'
-            hessian_path = f'{args.hessian_path}/{layer_name}'
-            hessian, mu = load_hessian(hessian_path, logger)
 
-            # init data
-            linear = subset[name].to(dev)
-            hessian.to('cpu')
-
-            # load inv_hessian from files to reduce memory usage
-            if args.inv_hessian_path is not None:
-                inv_hessian_path = f'{args.inv_hessian_path}/{layer_name}'
-                inv_hessian, perm, zero_idx = load_inv_hessian(inv_hessian_path, logger)
-                inv_hessian.to('cpu')
-                perm.to('cpu')
-                zero_idx.to('cpu')
+            if quant_args.kmeans_mode == 'hessian':
+                # Use the old logic (read Hessians from disk)
+                hessian_path = f'{args.hessian_path}/{layer_name}'
+                hessian, mu = load_hessian(hessian_path, logger)
+            
+                linear = subset[name].to(dev)
+                hessian.to('cpu')
+            
+                if args.inv_hessian_path is not None:
+                    inv_hessian_path = f'{args.inv_hessian_path}/{layer_name}'
+                    inv_hessian, perm, zero_idx = load_inv_hessian(inv_hessian_path, logger)
+                    inv_hessian.to('cpu')
+                    perm.to('cpu')
+                    zero_idx.to('cpu')
+                else:
+                    inv_hessian = None
+                    perm = None
+                    zero_idx = None
+            
             else:
+                # ============= No-Hessian / Plain K-means Mode =============
+                # We create dummy placeholders so the code won't crash.
+                linear = subset[name].to(dev)
+                in_features = linear.weight.shape[1]
+            
+                # Just zero or random. We choose zeros:
+                hessian = torch.zeros((in_features, in_features), dtype=torch.float32)
+                mu = torch.zeros_like(hessian)
+            
                 inv_hessian = None
                 perm = None
                 zero_idx = None
+
 
             layer_name = f'{layer_idx}.{name}'
 
