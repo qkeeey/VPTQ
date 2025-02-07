@@ -29,7 +29,7 @@ def get_llama(model_name, seqlen=None):
     torch.nn.init.normal_ = skip
     from transformers import LlamaForCausalLM
     model = LlamaForCausalLM.from_pretrained(
-        model_name, attn_implementation="flash_attention_2", torch_dtype=torch.bfloat16
+        model_name, torch_dtype=torch.bfloat16
     )
 
     if seqlen is not None:
