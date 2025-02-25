@@ -17,7 +17,6 @@ from vptq.layers.vqlinear import VQuantLinear
 from vptq.quantize_executer import quantize_executer
 from vptq.utils.layer_utils import find_layers, replace_layer
 
-
 # get llama model
 def get_llama(model_name, seqlen=None):
 
